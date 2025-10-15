@@ -4,7 +4,7 @@
     flat 
     height="64"
     class="white elevation-1"
-    
+    :class="{ 'theme--dark': $store.state.darkMode }"
   >
     <!-- Mobile Menu Toggle -->
     <v-app-bar-nav-icon 
