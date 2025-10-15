@@ -7,13 +7,13 @@
           <template>
             <v-container fluid>
               <!-- Header -->
-              <div class="text-center mb-6">
+              <!-- <div class="text-center mb-6">
                 <div class="text-h4 font-weight-bold mb-2 primary--text">Events & Workshops</div>
                 <div class="subtitle-1 grey--text">
                   Explore upcoming events and never miss a chance to learn, connect, or compete.
                 </div>
                 
-              </div>
+              </div> -->
 
               <!-- Top Controls: Search / Sort / Filters -->
               <v-row align="center" class="mb-4">

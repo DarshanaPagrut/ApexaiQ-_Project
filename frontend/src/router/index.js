@@ -5,7 +5,7 @@ import store from '../store'
 Vue.use(VueRouter)
 
 // Auth Components
-
+import LandingPage from '../views/auth/LandingPage.vue'
 import LoginPage from '../views/auth/Login.vue'
 import RegisterPage from '../views/auth/Register.vue'
 
@@ -47,8 +47,9 @@ import MessagePage from '@/views/MessagePage.vue'
 const routes = [
   {
     path: '/',
-    redirect: '/login',
-    
+    name: 'Landing',
+    component: LandingPage,
+    meta: { requiresGuest: true }
   },
   {
     path: '/login',

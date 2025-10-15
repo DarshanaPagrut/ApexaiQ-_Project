@@ -169,8 +169,14 @@ export default {
       this.$store.commit('TOGGLE_DARK_MODE')
     },
     goToProfile() {
-      const role = this.$store.state.user?.role
-      this.$router.push(`/${role}/profile`)
+      const role = this.$store.state.user?.role;
+      // This method dynamically routes to the correct profile page based on the user's role.
+      if (this.$router.currentRoute.name === `${role.charAt(0).toUpperCase() + role.slice(1)}Profile`) return;
+      
+      if (role === 'student' || role === 'alumni') {
+        this.$router.push(`/${role}/profile`);
+      }
+      // Admins do not have a dedicated profile page in this setup, so they won't be redirected.
     },
     goToSettings() {
       const role = this.$store.state.user?.role

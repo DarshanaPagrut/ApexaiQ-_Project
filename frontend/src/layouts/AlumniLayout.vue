@@ -3,15 +3,16 @@
     <!-- Navbar stays at the top full width -->
     <AppNavbar />
 
-    <v-main>
-      <!-- Sidebar should be inside v-main but still fixed on the side -->
+    <!-- Layout container -->
+    <div class="main-layout">
+      <!-- Sidebar -->
       <AppSidebar />
 
       <!-- Main content -->
-      <v-container fluid class="pa-6">
+      <div class="main-content">
         <router-view />
-      </v-container>
-    </v-main>
+      </div>
+    </div>
   </v-app>
 </template>
 <script>
@@ -26,3 +27,24 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.main-layout {
+  display: flex;
+  margin-top: 64px; /* Adjust for the height of the AppNavbar */
+  height: calc(100vh - 64px);
+}
+.sidebar {
+  width: 260px;
+  margin-top: 20px; 
+  background-color: #fff;
+  border-right: 1px solid #ddd;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+</style>
+

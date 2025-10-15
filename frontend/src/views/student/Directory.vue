@@ -9,13 +9,13 @@
             <v-row class="d-flex align-center justify-space-between pa-3">
             <div>
             <v-container class="text-center py-0">
-  <div class="text-h4 font-weight-bold mb-2 primary--text">
+  <!-- <div class="text-h4 font-weight-bold mb-2 primary--text">
     Connect. Collaborate. Grow.
   </div>
   <div class="subtitle-1 font-weight-medium grey--text text--darken-1">
     Explore alumni and students who share your journey.
     Filter by expertise, interests, or career path.
-  </div>
+  </div> -->
 </v-container>
 
             </div>

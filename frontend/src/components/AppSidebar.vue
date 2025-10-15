@@ -103,7 +103,7 @@ export default {
         },
         {
           name: 'mentorship',
-          title: 'Mentorship',
+          title: 'Chat',
           icon: 'mdi-account-tie',
           to: '/alumni/mentorship'
         },
@@ -140,8 +140,8 @@ export default {
           to: '/student/events'
         },
         {
-          name: 'mentorship',
-          title: 'Mentorship',
+          name: 'Mentorship',
+          title: 'Chat',
           icon: 'mdi-account-supervisor',
           to: '/student/mentorship'
         }
