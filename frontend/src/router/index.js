@@ -21,6 +21,8 @@ import AdminDirectory from '../views/admin/Directory.vue'
 import AdminEvents from '../views/admin/Events.vue'
 import MentorshipManagement from '../views/admin/MentorshipManagement.vue'
 import AdminAnalytics from '../views/admin/Analytics.vue'
+import AdminDonations from '../views/admin/Donations.vue'
+
 
 // Alumni Views
 import AlumniDashboard from '../views/alumni/Dashboard.vue'
@@ -29,12 +31,16 @@ import AlumniEvents from '../views/alumni/Events.vue'
 import AlumniMentorship from '../views/alumni/Mentorship.vue'
 import AlumniMemories from '../views/alumni/Memories.vue'
 import AlumniGroups from '../views/alumni/Groups.vue'
+import AlumniDonations from '../views/alumni/Donations.vue'
+import DonationReceipt from '../views/alumni/DonationReceipt.vue'
+// import AlumniProfile from '../views/alumni/Profile.vue'
 
 // Student Views
 import StudentDashboard from '../views/student/Dashboard.vue'
 import StudentDirectory from '../views/student/Directory.vue'
 import StudentEvents from '../views/student/Events.vue'
 import StudentMentorship from '../views/student/Mentorship.vue'
+// import StudentProfile from '../views/student/Profile.vue'
 
 // Common Views
 import ProfilePage from '../views/common/Profile.vue'
@@ -94,6 +100,11 @@ const routes = [
         component: AdminEvents
       },
       {
+        path: 'donations',
+        name: 'AdminDonations',
+        component: AdminDonations
+      },
+      {
         path: 'mentorship',
         name: 'MentorshipManagement',
         component: MentorshipManagement
@@ -149,6 +160,17 @@ const routes = [
         path: 'mentorship',
         name: 'AlumniMentorship',
         component: AlumniMentorship
+      },
+      {
+        path: 'donations',
+        name: 'AlumniDonations',
+        component: AlumniDonations
+      },
+      {
+        path: 'donation-receipt/:id',
+        name: 'DonationReceipt',
+        component: DonationReceipt,
+        props: true
       },
       {
         path: 'memories',
@@ -269,3 +291,4 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
+

@@ -70,6 +70,12 @@ export default {
           to: '/admin/events'
         },
         {
+          name: 'donations',
+          title: 'Donations & Funding',
+          icon: 'mdi-cash-multiple',
+          to: '/admin/donations'
+        },
+        {
           name: 'mentorship',
           title: 'Mentorship Management',
           icon: 'mdi-account-tie',
@@ -102,6 +108,12 @@ export default {
           to: '/alumni/events'
         },
         {
+          name: 'donations',
+          title: 'Donations',
+          icon: 'mdi-gift',
+          to: '/alumni/donations'
+        },
+        {
           name: 'mentorship',
           title: 'Chat',
           icon: 'mdi-account-tie',
@@ -112,12 +124,6 @@ export default {
           title: 'Memories',
           icon: 'mdi-image-multiple',
           to: '/alumni/memories'
-        },
-        {
-          name: 'groups',
-          title: 'Groups Chats',
-          icon: 'mdi-forum',
-          to: '/alumni/groups'
         }
       ],
       studentMenuItems: [

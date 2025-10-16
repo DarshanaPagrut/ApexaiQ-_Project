@@ -3,6 +3,8 @@ import Vuex from 'vuex'
 import { events } from './events'
 import theme from './modules/theme'
 import chat from './modules/chat';
+import donations from './modules/donations';
+import memories from './modules/memories';
 
 Vue.use(Vuex)
 
@@ -59,6 +61,8 @@ export default new Vuex.Store({
   modules: {
     chat,
     events,
-    theme
+    theme,
+    donations,
+    memories
   }
 })

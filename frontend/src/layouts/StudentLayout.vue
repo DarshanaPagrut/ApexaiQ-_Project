@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app style="background-color: #f3f6fa;">
     <!-- Fixed full-width navbar -->
     <AppNavbar />
 

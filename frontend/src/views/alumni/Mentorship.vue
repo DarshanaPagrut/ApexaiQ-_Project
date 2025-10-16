@@ -1,298 +1,185 @@
-
 <template>
-  <v-app>
-    <v-app-bar color="primary" elevation="3" height="70" dark>
-      <v-container fluid class="d-flex align-center px-6">
-        <v-toolbar-title class="text-h5 font-weight-bold">
-          <v-icon left size="32">mdi-message-text</v-icon>
-          Messages
-        </v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-chip color="accent" class="mr-4">
-          <v-icon left small>mdi-bell</v-icon>
-          {{ pendingRequests }} New Requests
-        </v-chip>
-        <v-btn icon>
-          <v-icon>mdi-cog</v-icon>
-        </v-btn>
-      </v-container>
-    </v-app-bar>
-
-    <v-navigation-drawer
-      v-model="leftDrawer"
-      :width="320"
-      permanent
-      app
-      class="border-right"
-    >
-      <div class="pa-4">
-        <v-text-field
-          v-model="searchQuery"
-          placeholder="Search conversations..."
-          solo
-          dense
-          prepend-inner-icon="mdi-magnify"
-          hide-details
-          rounded="lg"
-          class="mb-4"
-        ></v-text-field>
-
-        <v-tabs v-model="chatTab" color="primary" grow class="mb-4">
-          <v-tab>
-            <v-icon left>mdi-message</v-icon>
-            All
-          </v-tab>
-          <v-tab>
-            <v-icon left>mdi-school</v-icon>
-            Mentorship
-          </v-tab>
-        </v-tabs>
-      </div>
-
-      <v-divider></v-divider>
-
-      <v-list class="pa-2">
-        <v-list-item-group v-model="selectedConversationIndex" color="primary">
-          <v-list-item
-            v-for="(conversation, index) in filteredConversations"
-            :key="conversation.id"
-            @click="selectConversation(conversation, index)"
-            class="mb-1"
-          >
-            <v-list-item-avatar size="50">
-               <v-badge
-                :content="conversation.unreadCount"
-                :value="conversation.unreadCount > 0"
-                color="error"
-                offset-x="15"
-                offset-y="15"
+  <v-container fluid class="pa-0 fill-height">
+    <v-row no-gutters class="fill-height">
+      <!-- 
+        COLUMN 1: Conversations List
+        - Always visible on mdAndUp screens.
+        - On mobile (smAndDown), it's hidden once a conversation is selected.
+      -->
+      <v-col
+        v-if="!selectedConversation || !$vuetify.breakpoint.smAndDown"
+        cols="12"
+        md="4"
+        lg="3"
+        class="d-flex flex-column fill-height border-right"
+      >
+        <div class="pa-4">
+          <v-text-field
+            v-model="searchQuery"
+            placeholder="Search conversations..."
+            solo
+            dense
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            rounded
+            class="mb-4"
+          ></v-text-field>
+          <v-tabs v-model="chatTab" color="primary" grow>
+            <v-tab><v-icon left>mdi-message</v-icon>All</v-tab>
+            <v-tab><v-icon left>mdi-school</v-icon>Mentorship</v-tab>
+          </v-tabs>
+        </div>
+        <v-divider />
+        <v-list class="overflow-y-auto pa-2 flex-grow-1">
+          <v-list-item-group v-model="selectedConversationIndex" color="primary">
+            <v-list-item
+              v-for="(conversation, index) in filteredConversations"
+              :key="conversation.id"
+              @click="selectConversation(conversation, index)"
+              class="mb-1"
+            >
+              <v-list-item-avatar size="50">
+                <v-badge
+                  :content="conversation.unreadCount"
+                  :value="conversation.unreadCount > 0"
+                  color="error"
+                  offset-x="15"
+                  offset-y="15"
                 >
-                <v-avatar :color="conversation.userAvatar ? '' : 'primary'" size="50">
+                  <v-avatar :color="conversation.userAvatar ? '' : 'primary'" size="50">
                     <v-img v-if="conversation.userAvatar" :src="conversation.userAvatar"></v-img>
                     <span v-else class="white--text text-h6">{{ conversation.userName[0] }}</span>
-                </v-avatar>
-              </v-badge>
-            </v-list-item-avatar>
-
-            <v-list-item-content>
-              <v-list-item-title class="font-weight-bold mb-1">
-                {{ conversation.userName }}
-                <v-chip
-                  v-if="conversation.connectionType === 'mentorship'"
-                  x-small
-                  color="accent"
-                  class="ml-2"
-                >
-                  Mentor
-                </v-chip>
-              </v-list-item-title>
-              <v-list-item-subtitle class="text-truncate">
-                {{ conversation.lastMessage }}
-              </v-list-item-subtitle>
-            </v-list-item-content>
-
-             <v-list-item-action-text>
-                {{ formatTime(conversation.lastMessageTime) }}
-             </v-list-item-action-text>
-
-          </v-list-item>
-        </v-list-item-group>
-      </v-list>
-
-      <template v-slot:append>
+                  </v-avatar>
+                </v-badge>
+              </v-list-item-avatar>
+              <v-list-item-content>
+                <v-list-item-title class="font-weight-bold mb-1">
+                  {{ conversation.userName }}
+                   <v-chip v-if="conversation.connectionType === 'mentorship'" x-small color="accent" class="ml-2">Mentor</v-chip>
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-truncate">{{ conversation.lastMessage }}</v-list-item-subtitle>
+              </v-list-item-content>
+              <v-list-item-action-text>{{ formatTime(conversation.lastMessageTime) }}</v-list-item-action-text>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
         <div class="pa-4">
-          <v-btn block color="primary" depressed rounded="lg" class="text-none">
-            <v-icon left>mdi-plus</v-icon>
-            New Connection
-          </v-btn>
-        </div>
-      </template>
-    </v-navigation-drawer>
-
-    <v-main class="grey lighten-4">
-      <v-container fluid class="fill-height pa-0">
-        <div v-if="!selectedConversation" class="d-flex flex-column align-center justify-center fill-height text-center mx-auto">
-          <v-icon size="120" color="grey lighten-1">mdi-message-outline</v-icon>
-          <h2 class="text-h4 font-weight-bold mt-6 mb-2">No Conversation Selected</h2>
-          <p class="text-body-1 grey--text text--darken-1">Choose a conversation from the left to start chatting</p>
-        </div>
-
-        <div v-else class="d-flex flex-column fill-height" style="width: 100%;">
-          <v-sheet class="pa-4 elevation-2">
-             <div class="d-flex align-center justify-space-between">
-                <div class="d-flex align-center">
-                    <v-avatar :color="selectedConversation.userAvatar ? '' : 'primary'" size="50" class="mr-4">
-                        <v-img v-if="selectedConversation.userAvatar" :src="selectedConversation.userAvatar"></v-img>
-                        <span v-else class="white--text text-h6">{{ selectedConversation.userName[0] }}</span>
-                    </v-avatar>
-                    <div>
-                        <h3 class="text-h6 font-weight-bold">{{ selectedConversation.userName }}</h3>
-                        <div class="d-flex align-center">
-                            <v-chip x-small :color="selectedConversation.userRole === 'alumni' ? 'secondary' : 'info'" class="mr-2">
-                                {{ selectedConversation.userRole === 'alumni' ? 'Alumni' : 'Student' }}
-                            </v-chip>
-                            <span class="text-caption success--text">
-                                <v-icon x-small color="success">mdi-circle</v-icon>
-                                Online
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <v-btn color="accent" depressed class="text-none mr-2" @click="scheduleDialog = true">
-                        <v-icon left>mdi-calendar-clock</v-icon>
-                        Schedule Meeting
-                    </v-btn>
-                    <v-btn icon text><v-icon>mdi-phone</v-icon></v-btn>
-                    <v-btn icon text><v-icon>mdi-video</v-icon></v-btn>
-                    <v-btn icon text><v-icon>mdi-dots-vertical</v-icon></v-btn>
-                </div>
-            </div>
-          </v-sheet>
-
-          <div class="flex-grow-1 pa-6 overflow-y-auto" ref="messageContainer">
-              <div v-for="message in messages" :key="message.id" class="d-flex mb-4" :class="message.senderId === currentUserId ? 'justify-end' : 'justify-start'">
-                <v-hover v-slot="{ hover }">
-                    <div class="d-flex flex-column" style="position: relative;">
-                        <div
-                            :class="['pa-3', message.senderId === currentUserId ? 'primary white--text rounded-lg rounded-br-0' : 'white grey--text text--darken-3 rounded-lg rounded-bl-0']"
-                            style="max-width: 400px; word-wrap: break-word;"
-                        >
-                            <div v-if="message.senderId !== currentUserId" class="text-caption font-weight-bold mb-1 primary--text">
-                                {{ selectedConversation.userName }}
-                            </div>
-
-                            <div v-if="message.type === 'text'" class="text-body-1">
-                                {{ message.content }}
-                            </div>
-
-                             <v-card v-else-if="message.type === 'file' || message.type === 'document'" flat :color="message.senderId === currentUserId ? 'primary lighten-2' : 'grey lighten-3'">
-                                <div class="d-flex align-center pa-2">
-                                    <v-icon :color="message.senderId === currentUserId ? 'white' : 'primary'" size="32" class="mr-3">
-                                        mdi-file-document
-                                    </v-icon>
-                                    <div class="flex-grow-1">
-                                        <div class="text-body-2 font-weight-bold">{{ message.fileName }}</div>
-                                        <div class="text-caption">Click to download</div>
-                                    </div>
-                                </div>
-                            </v-card>
-
-                            <v-img v-else-if="message.type === 'image'" :src="message.fileUrl" max-width="300" class="rounded-lg mb-2"></v-img>
-
-                            <div class="text-caption mt-1" :class="message.senderId === currentUserId ? 'text-right' : 'text-left'" style="opacity: 0.7">
-                                {{ formatMessageTime(message.timestamp) }}
-                            </div>
-                        </div>
-
-                         <v-fade-transition>
-                            <div v-if="hover" class="d-flex rounded-pill white elevation-4" style="position: absolute; top: -16px; right: 10px; gap: 4px;">
-                                <v-btn icon x-small text @click="replyToMessage(message)"><v-icon small>mdi-reply</v-icon></v-btn>
-                                <v-btn icon x-small text @click="copyMessage(message)"><v-icon small>mdi-content-copy</v-icon></v-btn>
-                                <v-btn v-if="message.senderId === currentUserId" icon x-small text @click="deleteMessage(message)"><v-icon small>mdi-delete</v-icon></v-btn>
-                            </div>
-                        </v-fade-transition>
-                    </div>
-                </v-hover>
-            </div>
-          </div>
-
-
-          <v-sheet class="pa-4">
-              <v-card outlined rounded="lg">
-                  <div class="pa-3">
-                      <div v-if="replyingTo" class="mb-2 pa-2 rounded blue lighten-5" style="border-left: 3px solid #1976D2;">
-                          <div class="d-flex align-center justify-space-between">
-                              <div>
-                                  <div class="text-caption grey--text">Replying to</div>
-                                  <div class="text-body-2 text-truncate">{{ replyingTo.content }}</div>
-                              </div>
-                              <v-btn icon x-small @click="replyingTo = null"><v-icon>mdi-close</v-icon></v-btn>
-                          </div>
-                      </div>
-
-                      <div class="d-flex align-center">
-                          <v-menu top offset-y>
-                              <template v-slot:activator="{ on, attrs }">
-                                  <v-btn icon text v-bind="attrs" v-on="on"><v-icon>mdi-paperclip</v-icon></v-btn>
-                              </template>
-                              <v-list>
-                                  <v-list-item @click="attachFile('image')">
-                                      <v-list-item-icon><v-icon color="info">mdi-image</v-icon></v-list-item-icon>
-                                      <v-list-item-title>Image</v-list-item-title>
-                                  </v-list-item>
-                                   <v-list-item @click="attachFile('document')">
-                                      <v-list-item-icon><v-icon color="warning">mdi-file-document</v-icon></v-list-item-icon>
-                                      <v-list-item-title>Document</v-list-item-title>
-                                  </v-list-item>
-                                   <v-list-item @click="attachFile('file')">
-                                      <v-list-item-icon><v-icon color="success">mdi-file</v-icon></v-list-item-icon>
-                                      <v-list-item-title>File</v-list-item-title>
-                                  </v-list-item>
-                              </v-list>
-                          </v-menu>
-
-                          <v-btn icon text><v-icon>mdi-emoticon-happy</v-icon></v-btn>
-                          <v-text-field
-                              v-model="messageInput"
-                              placeholder="Type your message..."
-                              solo
-                              flat
-                              hide-details
-                              class="flex-grow-1 mx-2"
-                              @keyup.enter="sendMessage"
-                          ></v-text-field>
-                          <v-btn icon color="primary" depressed :disabled="!messageInput.trim()" @click="sendMessage">
-                              <v-icon>mdi-send</v-icon>
-                          </v-btn>
-                      </div>
-                  </div>
-              </v-card>
-          </v-sheet>
-        </div>
-      </v-container>
-    </v-main>
-
-    <v-navigation-drawer v-model="rightDrawer" :width="280" permanent app right class="border-left">
-      <div class="pa-4">
-        <v-btn block color="accent" depressed class="text-none mb-4" @click="requestsDialog = true">
-          <v-badge :content="pendingRequests" color="error" inline>
+          <v-btn block color="accent" depressed class="text-none" @click="requestsDialog = true">
             <v-icon left>mdi-inbox</v-icon>
             View Requests
-          </v-badge>
-        </v-btn>
-
-        <v-divider class="my-4"></v-divider>
-
-        <div v-if="selectedConversation">
-          <div class="text-center mb-4">
-            <v-avatar :color="selectedConversation.userAvatar ? '' : 'primary'" size="80" class="mb-3">
-              <v-img v-if="selectedConversation.userAvatar" :src="selectedConversation.userAvatar"></v-img>
-              <span v-else class="white--text text-h4">{{ selectedConversation.userName[0] }}</span>
-            </v-avatar>
-            <h3 class="text-h6 font-weight-bold">{{ selectedConversation.userName }}</h3>
-            <v-chip small :color="selectedConversation.userRole === 'alumni' ? 'secondary' : 'info'" class="mt-2">
-              {{ selectedConversation.userRole === 'alumni' ? 'Alumni' : 'Student' }}
-            </v-chip>
-          </div>
-
-          <v-btn block color="primary" outlined class="text-none mb-4" @click="viewProfile">
-            <v-icon left>mdi-account</v-icon>
-            View Profile
+             <v-badge :content="pendingRequests" color="error" inline class="ml-2"></v-badge>
           </v-btn>
+        </div>
+      </v-col>
 
-          <v-card flat color="info lighten-4" class="pa-3 rounded-lg">
-            <div class="text-body-2">
-                <div class="d-flex align-center mb-2"><v-icon small class="mr-2">mdi-email</v-icon><span class="text-caption">student@college.edu</span></div>
-                <div class="d-flex align-center mb-2"><v-icon small class="mr-2">mdi-phone</v-icon><span class="text-caption">+91 98765 43210</span></div>
-                <div class="d-flex align-center"><v-icon small class="mr-2">mdi-map-marker</v-icon><span class="text-caption">Mumbai, India</span></div>
+      <!-- 
+        COLUMN 2: Chat Interface
+        - Hidden on mobile until a conversation is selected.
+      -->
+      <v-col
+        v-if="selectedConversation"
+        cols="12"
+        md="8"
+        lg="9"
+        class="d-flex flex-column fill-height"
+      >
+        <!-- Chat Header -->
+        <v-sheet class="pa-3 elevation-1 d-flex align-center">
+          <v-btn v-if="$vuetify.breakpoint.smAndDown" icon @click="selectedConversation = null" class="mr-2">
+            <v-icon>mdi-arrow-left</v-icon>
+          </v-btn>
+          <v-avatar :color="selectedConversation.userAvatar ? '' : 'primary'" size="40" class="mr-3">
+            <v-img v-if="selectedConversation.userAvatar" :src="selectedConversation.userAvatar"></v-img>
+            <span v-else class="white--text">{{ selectedConversation.userName[0] }}</span>
+          </v-avatar>
+          <div>
+            <h3 class="text-body-1 font-weight-bold">{{ selectedConversation.userName }}</h3>
+            <div class="text-caption success--text">
+              <v-icon x-small color="success">mdi-circle</v-icon> Online
+            </div>
+          </div>
+          <v-spacer></v-spacer>
+           <v-btn color="accent" depressed class="text-none mr-2" @click="scheduleDialog = true">
+              <v-icon left>mdi-calendar-clock</v-icon>
+              Schedule Meeting
+          </v-btn>
+          <v-btn icon @click="viewProfile"><v-icon>mdi-account-circle-outline</v-icon></v-btn>
+        </v-sheet>
+        
+        <!-- Messages Area -->
+        <div class="flex-grow-1 pa-4 overflow-y-auto" ref="messageContainer">
+          <div v-for="message in selectedConversation.messages" :key="message.id" class="d-flex mb-4" :class="message.senderId === currentUserId ? 'justify-end' : 'justify-start'">
+            <v-hover v-slot="{ hover }">
+              <div class="message-wrapper">
+                <div :class="['pa-3', 'message-bubble', message.senderId === currentUserId ? 'primary white--text rounded-lg rounded-br-0' : 'grey lighten-3 black--text rounded-lg rounded-bl-0']">
+                  <div class="text-body-1">{{ message.content }}</div>
+                  <div class="text-caption mt-1 text-right" style="opacity: 0.7">{{ formatMessageTime(message.timestamp) }}</div>
+                </div>
+                <v-fade-transition>
+                  <div v-if="hover" class="message-actions">
+                    <v-btn icon x-small @click="replyToMessage(message)"><v-icon small>mdi-reply</v-icon></v-btn>
+                    <v-btn icon x-small @click="copyMessage(message)"><v-icon small>mdi-content-copy</v-icon></v-btn>
+                    <v-btn v-if="message.senderId === currentUserId" icon x-small @click="deleteMessage(message)"><v-icon small>mdi-delete</v-icon></v-btn>
+                  </div>
+                </v-fade-transition>
+              </div>
+            </v-hover>
+          </div>
+        </div>
+        
+        <!-- Message Input -->
+        <v-sheet class="pa-2">
+          <input type="file" ref="fileInput" @change="onFileSelected" style="display: none;" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx">
+          <v-card outlined rounded="lg">
+             <div v-if="replyingTo" class="reply-indicator pa-2">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <div class="text-caption grey--text">Replying to</div>
+                  <div class="text-body-2 text-truncate">{{ replyingTo.content }}</div>
+                </div>
+                <v-btn icon x-small @click="replyingTo = null"><v-icon>mdi-close</v-icon></v-btn>
+              </div>
+            </div>
+            <div class="pa-2">
+              <div class="d-flex align-center">
+                <v-menu top offset-y>
+                  <template v-slot:activator="{ on, attrs }">
+                      <v-btn icon text v-bind="attrs" v-on="on"><v-icon>mdi-paperclip</v-icon></v-btn>
+                  </template>
+                  <v-list>
+                      <v-list-item @click="attachFile('image')">
+                          <v-list-item-icon><v-icon color="info">mdi-image</v-icon></v-list-item-icon>
+                          <v-list-item-title>Image</v-list-item-title>
+                      </v-list-item>
+                        <v-list-item @click="attachFile('document')">
+                          <v-list-item-icon><v-icon color="warning">mdi-file-document</v-icon></v-list-item-icon>
+                          <v-list-item-title>Document</v-list-item-title>
+                      </v-list-item>
+                  </v-list>
+                </v-menu>
+                <v-text-field v-model="messageInput" placeholder="Type your message..." solo flat hide-details @keyup.enter="sendMessage"></v-text-field>
+                <v-btn icon color="primary" @click="sendMessage" :disabled="!messageInput.trim()">
+                  <v-icon>mdi-send</v-icon>
+                </v-btn>
+              </div>
             </div>
           </v-card>
-        </div>
-      </div>
-    </v-navigation-drawer>
-
-    <!-- Dialogs -->
+        </v-sheet>
+      </v-col>
+      
+      <!-- EMPTY STATE: Shown on larger screens when no chat is selected -->
+      <v-col
+        v-if="!selectedConversation && !$vuetify.breakpoint.smAndDown"
+        md="8" lg="9"
+        class="d-flex flex-column align-center justify-center text-center grey lighten-4"
+      >
+        <v-icon size="120" color="grey lighten-1">mdi-message-outline</v-icon>
+        <h2 class="text-h4 font-weight-bold mt-6 mb-2">Select a Conversation</h2>
+        <p class="text-body-1 grey--text text--darken-1">Choose a conversation from the left to start chatting.</p>
+      </v-col>
+    </v-row>
+    
+    <!-- DIALOGS -->
     <v-dialog v-model="requestsDialog" max-width="700">
         <v-card class="rounded-xl">
             <v-card-title class="pa-6 d-flex align-center">
@@ -304,7 +191,7 @@
                 <v-list>
                     <template v-for="(request, index) in connectionRequests">
                         <v-list-item :key="request.id" class="pa-4">
-                             <v-list-item-avatar color="primary" size="50">
+                              <v-list-item-avatar color="primary" size="50">
                                 <span class="white--text">{{ request.senderInfo.firstName[0] }}</span>
                             </v-list-item-avatar>
                             <v-list-item-content>
@@ -323,13 +210,12 @@
                                 </div>
                             </v-list-item-content>
                         </v-list-item>
-                         <v-divider :key="'divider-' + request.id" v-if="index < connectionRequests.length - 1"></v-divider>
+                          <v-divider :key="'divider-' + request.id" v-if="index < connectionRequests.length - 1"></v-divider>
                     </template>
                 </v-list>
             </v-card-text>
         </v-card>
     </v-dialog>
-
     <v-dialog v-model="scheduleDialog" max-width="500">
         <v-card class="rounded-xl">
             <v-card-title class="pa-6">
@@ -350,66 +236,52 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
-  </v-app>
+  </v-container>
 </template>
-
 
 <script>
 export default {
-  name: 'AlumniMentorship',
+  name: 'MessageComponent',
   data() {
     return {
-      leftDrawer: true,
-      rightDrawer: true,
       searchQuery: '',
-      chatTab: 0, // In Vuetify 2, tabs are index-based
+      chatTab: 0, 
       selectedConversation: null,
       selectedConversationIndex: null,
       messageInput: '',
-      currentUserId: '1',
-      hoveredMessage: null,
-      replyingTo: null,
+      currentUserId: 'alumni_1',
       requestsDialog: false,
       scheduleDialog: false,
+      replyingTo: null,
       conversations: [
         {
           id: '1',
-          userId: '2',
+          userId: 'student_1',
           userName: 'Priya Desai',
-          userRole: 'alumni',
+          userRole: 'student',
           lastMessage: 'Thanks for connecting! Happy to help with any questions.',
           lastMessageTime: new Date(Date.now() - 1000 * 60 * 5),
           unreadCount: 2,
-          connectionType: 'mentorship'
+          connectionType: 'mentorship',
+          messages: [
+            { id: 'msg1', senderId: 'student_1', content: 'Hi! I saw your profile and would love your guidance.', timestamp: new Date(Date.now() - 1000 * 60 * 30), type: 'text'},
+            { id: 'msg2', senderId: 'alumni_1', content: 'Of course, happy to help!', timestamp: new Date(Date.now() - 1000 * 60 * 25), type: 'text' },
+            { id: 'msg3', senderId: 'student_1', content: 'Thanks for connecting! Happy to help with any questions.', timestamp: new Date(Date.now() - 1000 * 60 * 5), type: 'text'}
+          ]
         },
         {
           id: '2',
-          userId: '3',
+          userId: 'student_2',
           userName: 'Amit Kumar',
           userRole: 'student',
           lastMessage: 'Hey, are you attending the tech fest?',
           lastMessageTime: new Date(Date.now() - 1000 * 60 * 30),
           unreadCount: 0,
-          connectionType: 'connection'
+          connectionType: 'connection',
+           messages: [
+            { id: 'msg4', senderId: 'student_2', content: 'Hey, are you attending the tech fest?', timestamp: new Date(Date.now() - 1000 * 60 * 30), type: 'text'}
+          ]
         },
-        {
-          id: '3',
-          userId: '4',
-          userName: 'Dr. Rajesh Mehta',
-          userRole: 'alumni',
-          lastMessage: 'I can review your resume this weekend',
-          lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 2),
-          unreadCount: 1,
-          connectionType: 'mentorship'
-        }
-      ],
-      messages: [
-        { id: '1', senderId: '2', receiverId: '1', content: 'Hi! I saw your profile and would love to mentor you in web development.', timestamp: new Date(Date.now() - 1000 * 60 * 30), type: 'text', read: true },
-        { id: '2', senderId: '1', receiverId: '2', content: 'Thank you so much! I would really appreciate your guidance.', timestamp: new Date(Date.now() - 1000 * 60 * 25), type: 'text', read: true },
-        { id: '3', senderId: '2', receiverId: '1', content: 'Great! Let me share some resources with you.', timestamp: new Date(Date.now() - 1000 * 60 * 20), type: 'text', read: true },
-        { id: '4', senderId: '2', receiverId: '1', content: 'Web Development Roadmap 2024.pdf', timestamp: new Date(Date.now() - 1000 * 60 * 15), type: 'document', fileName: 'Web Development Roadmap 2024.pdf', read: true },
-        { id: '5', senderId: '1', receiverId: '2', content: 'This is really helpful! Can we schedule a meeting to discuss my project?', timestamp: new Date(Date.now() - 1000 * 60 * 10), type: 'text', read: true },
-        { id: '6', senderId: '2', receiverId: '1', content: 'Thanks for connecting! Happy to help with any questions.', timestamp: new Date(Date.now() - 1000 * 60 * 5), type: 'text', read: true }
       ],
       connectionRequests: [
         { id: '1', senderId: '5', receiverId: '1', type: 'mentorship', status: 'pending', message: 'I am really interested in learning about AI/ML and would love your guidance.', timestamp: new Date(), senderInfo: { id: '5', firstName: 'Sneha', lastName: 'Patel', email: 'sneha@college.edu', role: 'student', collegeId: 'CS2023045', profileComplete: true } },
@@ -423,17 +295,14 @@ export default {
     },
     filteredConversations() {
       let filtered = this.conversations;
-
-      if (this.chatTab === 1) { // 0 is 'All', 1 is 'Mentorship'
+      if (this.chatTab === 1) { 
         filtered = filtered.filter(c => c.connectionType === 'mentorship');
       }
-
       if (this.searchQuery) {
         filtered = filtered.filter(c =>
           c.userName.toLowerCase().includes(this.searchQuery.toLowerCase())
         );
       }
-
       return filtered;
     }
   },
@@ -441,41 +310,62 @@ export default {
     selectConversation(conversation, index) {
       this.selectedConversation = conversation;
       this.selectedConversationIndex = index;
-      conversation.unreadCount = 0;
+      if(conversation) conversation.unreadCount = 0;
     },
     sendMessage() {
       if (!this.messageInput.trim() || !this.selectedConversation) return;
-
       const newMessage = {
         id: Date.now().toString(),
         senderId: this.currentUserId,
-        receiverId: this.selectedConversation.userId,
         content: this.messageInput,
         timestamp: new Date(),
         type: 'text',
-        read: false
+        replyTo: this.replyingTo ? this.replyingTo.id : null
       };
-
-      this.messages.push(newMessage);
+      this.selectedConversation.messages.push(newMessage);
+      this.selectedConversation.lastMessage = this.messageInput;
+      this.selectedConversation.lastMessageTime = new Date();
       this.messageInput = '';
       this.replyingTo = null;
+
+      this.$nextTick(() => {
+        const container = this.$refs.messageContainer;
+        if(container) container.scrollTop = container.scrollHeight;
+      });
     },
     replyToMessage(message) {
       this.replyingTo = message;
     },
     copyMessage(message) {
-      navigator.clipboard.writeText(message.content).catch(err => {
-        console.error('Could not copy text: ', err);
-      });
+      navigator.clipboard.writeText(message.content);
     },
-    deleteMessage(message) {
-      const index = this.messages.findIndex(m => m.id === message.id);
-      if (index !== -1) {
-        this.messages.splice(index, 1);
+    deleteMessage(messageToDelete) {
+      const messages = this.selectedConversation.messages;
+      const index = messages.findIndex(message => message.id === messageToDelete.id);
+      if (index > -1) {
+        messages.splice(index, 1);
       }
     },
     attachFile(type) {
+      this.$refs.fileInput.click();
       console.log('Attaching file type:', type);
+    },
+     onFileSelected(event) {
+      const file = event.target.files[0];
+      if (!file || !this.selectedConversation) return;
+
+      const newMessage = {
+        id: Date.now().toString(),
+        senderId: this.currentUserId,
+        content: file.name,
+        timestamp: new Date(),
+        type: file.type.startsWith('image/') ? 'image' : 'document',
+        fileName: file.name,
+        fileUrl: URL.createObjectURL(file) // For preview
+      };
+      this.selectedConversation.messages.push(newMessage);
+       this.selectedConversation.lastMessage = file.name;
+       this.selectedConversation.lastMessageTime = new Date();
     },
     acceptRequest(request) {
       console.log('Accepting request:', request);
@@ -489,24 +379,24 @@ export default {
       console.log('Viewing profile:', request.senderInfo);
     },
     viewProfile() {
-      console.log('Viewing profile:', this.selectedConversation);
+      if(this.selectedConversation) {
+        this.$router.push(`/alumni/profile/${this.selectedConversation.userId}`);
+      }
     },
     generateMeetingLink() {
       console.log('Generating Google Meet link...');
-      this.scheduleDialog.value = false;
+      this.scheduleDialog = false;
     },
     formatTime(date) {
       const now = new Date();
       const diff = now.getTime() - date.getTime();
       const minutes = Math.floor(diff / (1000 * 60));
       const hours = Math.floor(diff / (1000 * 60 * 60));
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
       if (minutes < 1) return 'now';
-      if (minutes < 60) return `${minutes}m ago`;
-      if (hours < 24) return `${hours}h ago`;
-      if (days < 7) return `${days}d ago`;
-      return date.toLocaleDateString();
+      if (minutes < 60) return `${minutes}m`;
+      if (hours < 24) return `${hours}h`;
+      const days = Math.floor(hours / 24);
+      return `${days}d`;
     },
     formatMessageTime(date) {
       return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -516,11 +406,32 @@ export default {
 </script>
 
 <style>
-/* Adding border helper classes as they are not in Vuetify 2 by default */
 .border-right {
-    border-right: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.12);
 }
-.border-left {
-    border-left: 1px solid rgba(0, 0, 0, 0.12) !important;
+.fill-height {
+  height: calc(100vh - 70px); /* Full viewport height minus app bar */
 }
+
+.message-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.message-actions {
+  position: absolute;
+  top: -16px;
+  right: 10px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  padding: 2px;
+}
+.reply-indicator {
+  background: rgba(0, 146, 255, 0.1);
+  border-left: 3px solid #0092FF;
+}
+
 </style>
+
